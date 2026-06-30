@@ -10,6 +10,9 @@ import NotificacionOperacion from "../components/NotificacionOperacion";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import Paginacion from "../components/ordenamiento/Paginacion";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 const Empleados = () => {
     const [empleados, setEmpleados] = useState([]);
     const [empleadosFiltrados, setEmpleadosFiltrados] = useState([]);
@@ -183,6 +186,34 @@ const Empleados = () => {
         setMostrarModalEdicion(true);
     };
 
+    // 📄 PDF GENERAL DE EMPLEADOS
+    const generarPDFEmpleados = () => {
+
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text("Reporte General de Empleados", 14, 20);
+
+        doc.line(14, 25, 195, 25);
+
+        autoTable(doc, {
+            startY: 32,
+            head: [["ID", "Nombre", "Apellido", "Celular", "Email", "Rol"]],
+            body: empleadosFiltrados.map((emp) => [
+                emp.id_empleado,
+                emp.nombre_empleado,
+                emp.apellido_empleado,
+                emp.celular || "",
+                emp.email || "",
+                emp.tipo_empleado || "",
+            ]),
+            headStyles: { fillColor: [40, 137, 182] },
+            styles: { fontSize: 9, cellPadding: 3 },
+        });
+
+        doc.save("reporte_empleados.pdf");
+    };
+
    return (
         <Container className="mt-3">
 
@@ -197,9 +228,20 @@ const Empleados = () => {
                     </div>
                 </div>
 
-                <Button className="btn-encabezado-pagina" onClick={() => setMostrarModal(true)}>
-                    <i className="bi-plus-lg me-2"></i>Nuevo Empleado
-                </Button>
+                <div className="d-flex gap-2">
+                    <Button
+                        variant="light"
+                        className="btn-encabezado-pagina"
+                        onClick={generarPDFEmpleados}
+                    >
+                        <i className="bi bi-file-earmark-pdf me-2"></i>
+                        <span className="d-none d-sm-inline">Descargar PDF</span>
+                    </Button>
+
+                    <Button className="btn-encabezado-pagina" onClick={() => setMostrarModal(true)}>
+                        <i className="bi-plus-lg me-2"></i>Nuevo Empleado
+                    </Button>
+                </div>
             </div>
 
             {/* CONTENIDO */}

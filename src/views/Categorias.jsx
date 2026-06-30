@@ -1,6 +1,4 @@
-﻿
-
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 
@@ -14,6 +12,9 @@ import TarjetaCategoria from "../components/categorias/TarjetaCategoria";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import Paginacion from "../components/ordenamiento/Paginacion";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Categorias = () => {
 
@@ -317,6 +318,31 @@ const Categorias = () => {
     }
   };
 
+  // 📄 PDF GENERAL DE CATEGORIAS
+  const generarPDFCategorias = () => {
+
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Reporte General de Categorías", 14, 20);
+
+    doc.line(14, 25, 195, 25);
+
+    autoTable(doc, {
+      startY: 32,
+      head: [["ID", "Nombre", "Descripción"]],
+      body: categoriasFiltradas.map((cat) => [
+        cat.id_categoria,
+        cat.nombre_categoria,
+        cat.descripcion_categoria,
+      ]),
+      headStyles: { fillColor: [40, 137, 182] },
+      styles: { fontSize: 10, cellPadding: 3 },
+    });
+
+    doc.save("reporte_categorias.pdf");
+  };
+
 return (
     <Container className="mt-3">
 
@@ -332,10 +358,21 @@ return (
           </div>
         </div>
 
-        <Button className="btn-encabezado-pagina" onClick={() => setMostrarModal(true)}>
-          <i className="bi-plus-lg"></i>
-          <span className="ms-2">Nueva Categoría</span>
-        </Button>
+        <div className="d-flex gap-2">
+          <Button
+            variant="light"
+            className="btn-encabezado-pagina"
+            onClick={generarPDFCategorias}
+          >
+            <i className="bi bi-file-earmark-pdf me-2"></i>
+            <span className="d-none d-sm-inline">Descargar PDF</span>
+          </Button>
+
+          <Button className="btn-encabezado-pagina" onClick={() => setMostrarModal(true)}>
+            <i className="bi-plus-lg"></i>
+            <span className="ms-2">Nueva Categoría</span>
+          </Button>
+        </div>
       </div>
 
       {/* CONTENIDO */}
