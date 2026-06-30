@@ -6,7 +6,10 @@ import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import Paginacion from "../components/ordenamiento/Paginacion";
 import TablaVentas from "../components/ventas/TablaVentas";
 import TarjetaVenta from "../components/ventas/TarjetaVenta";
-import FormularioVenta from "../components/ventas/FormularioVenta";
+import FormularioVenta from "../components/ventas/Formularioventa";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Ventas = () => {
   const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });
@@ -249,6 +252,41 @@ const Ventas = () => {
     0
   );
 
+  // 📄 PDF GENERAL DE VENTAS
+  const generarPDFVentas = () => {
+
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Reporte General de Ventas", 14, 20);
+
+    doc.line(14, 25, 195, 25);
+
+    autoTable(doc, {
+      startY: 32,
+      head: [["ID", "Fecha", "Cliente", "Empleado", "Método de Pago", "Total"]],
+      body: ventasFiltradas.map((v) => [
+        v.id_venta,
+        v.fecha_venta
+          ? new Date(v.fecha_venta).toLocaleString("es-NI", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "",
+        `${v.clientes?.nombre_cliente || ""} ${v.clientes?.apellido_cliente || ""}`.trim(),
+        `${v.empleados?.nombre_empleado || ""} ${v.empleados?.apellido_empleado || ""}`.trim(),
+        v.metodo_pago || "",
+        `C$ ${parseFloat(v.total || 0).toFixed(2)}`,
+      ]),
+      headStyles: { fillColor: [40, 137, 182] },
+      styles: { fontSize: 9, cellPadding: 3 },
+      foot: [["", "", "", "", "Total General", `C$ ${totalVentasFiltradas.toFixed(2)}`]],
+      footStyles: { fillColor: [230, 230, 230], textColor: 20, fontStyle: "bold" },
+    });
+
+    doc.save("reporte_ventas.pdf");
+  };
+
   return (
     <Container className="mt-3">
 
@@ -263,10 +301,21 @@ const Ventas = () => {
           </div>
         </div>
 
-        <Button className="btn-encabezado-pagina" onClick={abrirNuevaVenta}>
-          <i className="bi bi-plus-lg me-2"></i>
-          <span className="d-none d-sm-inline">Nueva Venta</span>
-        </Button>
+        <div className="d-flex gap-2">
+          <Button
+            variant="light"
+            className="btn-encabezado-pagina"
+            onClick={generarPDFVentas}
+          >
+            <i className="bi bi-file-earmark-pdf me-2"></i>
+            <span className="d-none d-sm-inline">Descargar PDF</span>
+          </Button>
+
+          <Button className="btn-encabezado-pagina" onClick={abrirNuevaVenta}>
+            <i className="bi bi-plus-lg me-2"></i>
+            <span className="d-none d-sm-inline">Nueva Venta</span>
+          </Button>
+        </div>
       </div>
 
       {/* CONTENIDO */}

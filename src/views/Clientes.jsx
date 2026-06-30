@@ -10,6 +10,9 @@ import NotificacionOperacion from "../components/NotificacionOperacion";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import Paginacion from "../components/ordenamiento/Paginacion";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 const Clientes = () => {
     const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });
     const [mostrarModal, setMostrarModal] = useState(false);
@@ -249,6 +252,32 @@ const Clientes = () => {
         }
     };
 
+    // 📄 PDF GENERAL DE CLIENTES
+    const generarPDFClientes = () => {
+
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text("Reporte General de Clientes", 14, 20);
+
+        doc.line(14, 25, 195, 25);
+
+        autoTable(doc, {
+            startY: 32,
+            head: [["ID", "Nombre", "Apellido", "Celular"]],
+            body: clientesFiltrados.map((cli) => [
+                cli.id_cliente,
+                cli.nombre_cliente,
+                cli.apellido_cliente,
+                cli.celular,
+            ]),
+            headStyles: { fillColor: [40, 137, 182] },
+            styles: { fontSize: 10, cellPadding: 3 },
+        });
+
+        doc.save("reporte_clientes.pdf");
+    };
+
  return (
         <Container className="mt-3">
 
@@ -263,10 +292,21 @@ const Clientes = () => {
                     </div>
                 </div>
 
-                <Button className="btn-encabezado-pagina" onClick={() => setMostrarModal(true)}>
-                    <i className="bi-plus-lg me-2"></i>
-                    <span className="d-none d-sm-inline">Nuevo Cliente</span>
-                </Button>
+                <div className="d-flex gap-2">
+                    <Button
+                        variant="light"
+                        className="btn-encabezado-pagina"
+                        onClick={generarPDFClientes}
+                    >
+                        <i className="bi bi-file-earmark-pdf me-2"></i>
+                        <span className="d-none d-sm-inline">Descargar PDF</span>
+                    </Button>
+
+                    <Button className="btn-encabezado-pagina" onClick={() => setMostrarModal(true)}>
+                        <i className="bi-plus-lg me-2"></i>
+                        <span className="d-none d-sm-inline">Nuevo Cliente</span>
+                    </Button>
+                </div>
             </div>
 
             {/* CONTENIDO */}
